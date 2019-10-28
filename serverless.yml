@@ -1,0 +1,25 @@
+service: image
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, 'prod'}
+  timeout: 40
+
+region: us-east-1
+
+functions:
+  image:
+    handler: src/handler.image
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  bucket:
+  serverless-offline:
+    port: 9000
+  webpack:
+    webpackConfig: 'webpack.config.js'
+    packager: 'npm'
