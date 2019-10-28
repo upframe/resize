@@ -7,6 +7,11 @@ provider:
   timeout: 40
   profile: upframe
   region: eu-west-2
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 's3:*'
+      Resource: 'arn:aws:s3:::upframe-test-image-resize/*'
 
 functions:
   resize:
