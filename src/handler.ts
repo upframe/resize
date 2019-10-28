@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { S3 } from 'aws-sdk'
+import sharp from 'sharp'
 
 const s3 = new S3()
 const bucketUrl = `https://${process.env.BUCKET_NAME}.s3.eu-west-2.amazonaws.com/`
@@ -19,7 +20,12 @@ export const resize = async ({ Records }) => {
 }
 
 async function processImage(path: string) {
-  return download(bucketUrl + path).then(img => upload(`resized/${path}`, img))
+  const img = await download(bucketUrl + path)
+  await Promise.all(
+    (await Promise.all(await resizeImg(img))).map(({ img, size, format }) =>
+      upload(`resized/${path.split('.').shift()}-${size}.${format}`, img)
+    )
+  )
 }
 
 const download = (url: string): Promise<Buffer> =>
@@ -52,4 +58,29 @@ function upload(name: string, data: Buffer): Promise<void> {
         reject(err)
       })
   })
+}
+
+export const resizeImg = async (data: Buffer, sizes = [200, 500]) => {
+  const img = sharp(data)
+  const meta = await img.metadata()
+
+  const imgSize = Math.min(meta.width, meta.height)
+  if (Math.max(...sizes) > imgSize)
+    sizes = [...sizes.filter(size => size < imgSize), imgSize]
+
+  const sized = sizes.map(size => ({
+    img: img.clone().resize(size, size, {
+      fit: 'cover',
+      kernel: sharp.kernel.lanczos3,
+    }),
+    size,
+  }))
+
+  return ['jpeg', 'webp'].flatMap(format =>
+    sized.map(({ img: raw, size }) =>
+      (meta.format === format ? raw : raw[format]())
+        .toBuffer()
+        .then(img => ({ img, size, format }))
+    )
+  )
 }
