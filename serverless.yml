@@ -34,6 +34,9 @@ custom:
     port: 9000
   webpack:
     webpackConfig: 'webpack.config.js'
+    includeModules:
+      forceExlude:
+        - aws-sdk
     packager: 'npm'
   bucket:
     name: upframe-test-image-resize
