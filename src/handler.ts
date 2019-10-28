@@ -1,3 +1,3 @@
-export const image = async event => {
+export const resize = async () => {
   console.log('hello')
 }

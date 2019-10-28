@@ -3,7 +3,17 @@
   "version": "1.0.0",
   "description": "Image Resizing Service",
   "scripts": {
-    "start:offline": "sls offline"
+    "start:offline": "sls offline",
+    "logs": "sls logs -f resize",
+    "logs:watch": "sls logs -f resize -t",
+    "deploy": "sls deploy",
+    "deploy:function": "sls deploy function -f resize",
+    "prettier:check": "prettier --check \"./*.ts\" \"./**/*.ts\"",
+    "prettier:write": "prettier --write \"./*.ts\" \"./**/*.ts\"",
+    "eslint:check": "eslint . --ext .ts",
+    "eslint:write": "eslint . --ext .ts --fix",
+    "lint": "npm run eslint:check && npm run prettier:check",
+    "format": "npm run eslint:write && npm run prettier:write"
   },
   "repository": {
     "type": "git",

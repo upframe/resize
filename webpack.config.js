@@ -1,5 +1,4 @@
 const slsw = require('serverless-webpack')
-const exec = require('child_process').exec
 
 module.exports = {
   entry: slsw.lib.entries,

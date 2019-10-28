@@ -1,16 +1,18 @@
-service: image
+service: resize
 
 provider:
   name: aws
   runtime: nodejs10.x
   stage: ${opt:stage, 'prod'}
   timeout: 40
-
-region: us-east-1
+  profile: upframe
+  region: eu-west-2
 
 functions:
-  image:
-    handler: src/handler.image
+  resize:
+    handler: src/handler.resize
+    environment:
+      stage: ${self:provider.stage}
 
 plugins:
   - serverless-webpack
