@@ -11,16 +11,17 @@ provider:
     - Effect: 'Allow'
       Action:
         - 's3:*'
-      Resource: 'arn:aws:s3:::upframe-test-image-resize/*'
+      Resource: arn:aws:s3:::${self:custom.bucket.name}/*
 
 functions:
   resize:
     handler: src/handler.resize
     environment:
       stage: ${self:provider.stage}
+      BUCKET_NAME: ${self:custom.bucket.name}
     events:
       - s3:
-          bucket: upframe-test-image-resize
+          bucket: ${self:custom.bucket.name}
           event: s3:ObjectCreated:*
           existing: true
 
@@ -29,9 +30,10 @@ plugins:
   - serverless-offline
 
 custom:
-  bucket:
   serverless-offline:
     port: 9000
   webpack:
     webpackConfig: 'webpack.config.js'
     packager: 'npm'
+  bucket:
+    name: upframe-test-image-resize

@@ -2,13 +2,9 @@ import axios from 'axios'
 import { S3 } from 'aws-sdk'
 
 const s3 = new S3()
-const bucketUrl =
-  'https://upframe-test-image-resize.s3.eu-west-2.amazonaws.com/'
+const bucketUrl = `https://${process.env.BUCKET_NAME}.s3.eu-west-2.amazonaws.com/`
 
 export const resize = async ({ Records }) => {
-  console.log('Records')
-  Records.forEach(console.dir)
-
   const imgPaths = Records.filter(
     ({ eventName }) => eventName === 'ObjectCreated:Put'
   )
@@ -44,7 +40,7 @@ const download = (url: string): Promise<Buffer> =>
 function upload(name: string, data: Buffer): Promise<void> {
   return new Promise((resolve: () => void, reject) => {
     s3.upload({
-      Bucket: 'upframe-test-image-resize',
+      Bucket: process.env.BUCKET_NAME,
       Key: name,
       Body: data,
       ACL: 'public-read',
