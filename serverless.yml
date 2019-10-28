@@ -13,6 +13,11 @@ functions:
     handler: src/handler.resize
     environment:
       stage: ${self:provider.stage}
+    events:
+      - s3:
+          bucket: upframe-test-image-resize
+          event: s3:ObjectCreated:*
+          existing: true
 
 plugins:
   - serverless-webpack
