@@ -39,4 +39,4 @@ custom:
         - aws-sdk
     packager: 'npm'
   bucket:
-    name: upframe-test-image-resize
+    name: connect-api-profile-pictures

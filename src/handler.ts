@@ -23,7 +23,12 @@ async function processImage(path: string) {
   const img = await download(bucketUrl + path)
   await Promise.all(
     (await Promise.all(await resizeImg(img))).map(({ img, size, format }) =>
-      upload(`resized/${path.split('.').shift()}-${size}.${format}`, img)
+      upload(
+        `resized/${path.split('.').shift()}-${
+          !(Math.log2(size) % 1) ? size : 'max'
+        }.${format}`,
+        img
+      )
     )
   )
 }
@@ -60,7 +65,10 @@ function upload(name: string, data: Buffer): Promise<void> {
   })
 }
 
-export const resizeImg = async (data: Buffer, sizes = [200, 500]) => {
+export const resizeImg = async (
+  data: Buffer,
+  sizes = [128, 256, 512, 1024]
+) => {
   const img = sharp(data)
   const meta = await img.metadata()
 
