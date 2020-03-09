@@ -1,5 +1,4 @@
 const slsw = require('serverless-webpack')
-const exec = require('child_process').exec
 
 module.exports = {
   entry: slsw.lib.entries,
@@ -44,17 +43,4 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    {
-      apply: compiler => {
-        compiler.hooks.done.tapAsync('Linux Binaries', (arg, callback) => {
-          exec('./installSharp.sh', (err, stdout, stderr) => {
-            if (stdout) process.stdout.write(stdout)
-            if (stderr) process.stderr.write(stderr)
-            callback()
-          })
-        })
-      },
-    },
-  ],
 }

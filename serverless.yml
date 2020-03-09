@@ -5,29 +5,31 @@ provider:
   runtime: nodejs10.x
   stage: ${opt:stage, 'prod'}
   timeout: 40
-  profile: upframe
   region: eu-west-2
-  iamRoleStatements:
-    - Effect: 'Allow'
-      Action:
-        - 's3:*'
-      Resource: arn:aws:s3:::${self:custom.bucket.name}/*
 
 functions:
   resize:
     handler: src/handler.resize
     environment:
       stage: ${self:provider.stage}
-      BUCKET_NAME: ${self:custom.bucket.name}
+      BUCKET_NAME: ${env:BUCKET_NAME}
+      BUCKET_REGION: ${env:BUCKET_REGION}
+      AWS_KEY_ID: ${ssm:/resize/AwsKeyId}
+      AWS_KEY_SECRET: ${ssm:/resize/AwsKeySecret~true}
+
     events:
       - s3:
-          bucket: ${self:custom.bucket.name}
+          bucket: ${env:BUCKET_NAME}
           event: s3:ObjectCreated:*
           existing: true
+      - http:
+          method: POST
+          path: /resize
 
 plugins:
   - serverless-webpack
   - serverless-offline
+  - serverless-dotenv-plugin
 
 custom:
   serverless-offline:
@@ -38,5 +40,3 @@ custom:
       forceExlude:
         - aws-sdk
     packager: 'npm'
-  bucket:
-    name: connect-api-profile-pictures
