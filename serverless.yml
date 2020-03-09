@@ -2,7 +2,7 @@ service: resize
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${opt:stage, 'prod'}
   timeout: 40
   region: eu-west-2
@@ -36,7 +36,5 @@ custom:
     port: 9000
   webpack:
     webpackConfig: 'webpack.config.js'
-    includeModules:
-      forceExlude:
-        - aws-sdk
     packager: 'npm'
+    includeModules: true
