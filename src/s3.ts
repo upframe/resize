@@ -6,10 +6,12 @@ const s3 = new S3({
   secretAccessKey: process.env.AWS_KEY_SECRET,
 })
 
+const bucketUrl = `https://${process.env.BUCKET_NAME}.s3.${process.env.BUCKET_REGION}.amazonaws.com/`
+
 export const download = (path: string): Promise<Buffer> =>
   axios({
     method: 'get',
-    url: `https://${process.env.BUCKET_NAME}.s3.${process.env.BUCKET_REGION}.amazonaws.com/${path}`,
+    url: bucketUrl + path,
     responseType: 'arraybuffer',
     timeout: 10000,
   }).then(({ data }) => data)
@@ -23,3 +25,5 @@ export const upload = async (name: string, data: Buffer) =>
       ACL: 'public-read',
     })
     .promise()
+
+export const getUrl = (key: string) => `${bucketUrl}res-v2/${key}`

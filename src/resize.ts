@@ -1,5 +1,6 @@
-import { download, upload } from './s3'
+import { download, upload, getUrl } from './s3'
 import sharp from 'sharp'
+import db from './db'
 
 export default async function(...imgs) {
   console.log(`process ${imgs.join(', ')}`)
@@ -12,29 +13,52 @@ async function process(img: string, total: number) {
     data = await download(img)
     console.log(`downloaded ${count('download')}/${total}`)
   } catch (e) {
+    console.log(e)
     return console.warn(`couldn't download ${img}`)
   }
   let processed: { img: Promise<Buffer>; size: number; format: string }[]
   try {
     processed = await resize(data)
-    await Promise.all(
-      processed
-        .map(({ img: data, size, format }) => ({
-          name: `${img.replace(/^(.+)\.\w+$/, '$1')}-${size}.${format}`,
-          data,
-        }))
-        .map(({ name, data }) =>
-          data
-            .catch(() => `couldn't resize ${name}`)
-            .then((data: Buffer) => upload(`${name}`, data))
-            .catch(({ message }) =>
-              console.warn(`couldn't upload ${name} (${message})`)
-            )
-        )
-    )
+    const imgs = (
+      await Promise.all(
+        processed
+          .map(({ img: data, size, format }) => ({
+            name: `${img.replace(/^(.+)\.\w+$/, '$1')}-${size}.${format}`,
+            data,
+            size,
+            format,
+          }))
+          .map(({ name, data, size, format }) =>
+            data
+              .then(
+                (data: Buffer) =>
+                  upload(`${name}`, data).then(() => ({
+                    size,
+                    format,
+                    name,
+                  })),
+                () => console.log(`couldn't resize ${name}`)
+              )
+              .catch(({ message }) =>
+                console.warn(`couldn't upload ${name} (${message})`)
+              )
+          )
+      )
+    ).filter(Boolean)
+    if (!imgs.length) throw Error()
     console.log(`uploaded ${count('upload')}/${total}`)
+    await db('profile_pictures')
+      .del()
+      .where({ user_id: img.split('.')[0] })
+    await db('profile_pictures').insert(
+      imgs.map(({ size, format, name }: any) => ({
+        user_id: img.split('.')[0],
+        size,
+        type: format,
+        url: getUrl(name),
+      }))
+    )
   } catch (e) {
-    console.log(e)
     return console.warn(`couldn't resize ${img}`)
   }
 }

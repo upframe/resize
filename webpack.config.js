@@ -1,4 +1,5 @@
 const slsw = require('serverless-webpack')
+const nodeExternals = require('webpack-node-externals')
 
 module.exports = {
   entry: slsw.lib.entries,
@@ -15,9 +16,7 @@ module.exports = {
     mainFields: ['main', 'module'],
     extensions: ['.ts', '.js'],
   },
-  externals: {
-    sharp: 'sharp',
-  },
+  externals: [nodeExternals()],
   module: {
     rules: [
       {
