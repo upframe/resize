@@ -1,5 +1,5 @@
 const slsw = require('serverless-webpack')
-const exec = require('child_process').exec
+const nodeExternals = require('webpack-node-externals')
 
 module.exports = {
   entry: slsw.lib.entries,
@@ -16,9 +16,7 @@ module.exports = {
     mainFields: ['main', 'module'],
     extensions: ['.ts', '.js'],
   },
-  externals: {
-    sharp: 'sharp',
-  },
+  externals: [nodeExternals()],
   module: {
     rules: [
       {
@@ -44,17 +42,4 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    {
-      apply: compiler => {
-        compiler.hooks.done.tapAsync('Linux Binaries', (arg, callback) => {
-          exec('./installSharp.sh', (err, stdout, stderr) => {
-            if (stdout) process.stdout.write(stdout)
-            if (stderr) process.stderr.write(stderr)
-            callback()
-          })
-        })
-      },
-    },
-  ],
 }
