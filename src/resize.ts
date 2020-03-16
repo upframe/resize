@@ -47,17 +47,26 @@ async function process(img: string, total: number) {
     ).filter(Boolean)
     if (!imgs.length) throw Error()
     console.log(`uploaded ${count('upload')}/${total}`)
-    await db('profile_pictures')
-      .del()
-      .where({ user_id: img.split('.')[0] })
-    await db('profile_pictures').insert(
-      imgs.map(({ size, format, name }: any) => ({
-        user_id: img.split('.')[0],
-        size,
-        type: format,
-        url: getUrl(name),
-      }))
-    )
+    const insert = async env => {
+      const client = db(env)
+      if ((await client('users').where({ id: img.split('.')[0] })).length === 0)
+        return void console.log(`skip ${env} DB`)
+      return client('profile_pictures')
+        .del()
+        .where({ user_id: img.split('.')[0] })
+        .then(() =>
+          client('profile_pictures').insert(
+            imgs.map(({ size, format, name }: any) => ({
+              user_id: img.split('.')[0],
+              size,
+              type: format,
+              url: getUrl(name),
+            }))
+          )
+        )
+        .then(() => console.log(`stored imgs in ${env} DB`))
+    }
+    await Promise.all([insert('PROD'), insert('DEV')])
   } catch (e) {
     return console.warn(`couldn't resize ${img}`)
   }
