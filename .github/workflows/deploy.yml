@@ -24,6 +24,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
           BUCKET_REGION: ${{ secrets.BUCKET_REGION }}
+          SECURITY_GROUP: ${{ secrets.SECURITY_GROUP }}
+          SUBNET: ${{ secrets.SUBNET }}
         run: |
           if [ ${GITHUB_REF##*/} = "master" ]; then
             npx sls deploy --stage prod

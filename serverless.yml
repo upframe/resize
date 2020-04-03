@@ -16,14 +16,12 @@ functions:
       BUCKET_REGION: ${env:BUCKET_REGION}
       AWS_KEY_ID: ${ssm:/resize/AwsKeyId}
       AWS_KEY_SECRET: ${ssm:/resize/AwsKeySecret~true}
-      DEV_DB_HOST: ${ssm:/DB/Dev/Host}
-      DEV_DB_NAME: ${ssm:/DB/Dev/Name}
-      DEV_DB_USER: ${ssm:/DB/Dev/User}
-      DEV_DB_PASS: ${ssm:/DB/Dev/Password~true}
-      PROD_DB_HOST: ${ssm:/DB/Prod/Host}
-      PROD_DB_NAME: ${ssm:/DB/Prod/Name}
-      PROD_DB_USER: ${ssm:/DB/Prod/User}
-      PROD_DB_PASS: ${ssm:/DB/Prod/Password~true}
+
+      DB_HOST: ${ssm:/DB/Host}
+      DB_PORT: ${ssm:/DB/Port}
+      DB_NAME: ${ssm:/DB/Name}
+      DB_USER: ${ssm:/resize/DB/User}
+      DB_PASSWORD: ${ssm:/resize/DB/Password~true}
 
     events:
       - s3:
