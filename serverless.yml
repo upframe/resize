@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: nodejs12.x
   stage: ${opt:stage, 'prod'}
-  timeout: 40
+  timeout: 30
   region: eu-west-2
 
 functions:
