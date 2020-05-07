@@ -5,7 +5,7 @@ provider:
   runtime: nodejs12.x
   stage: ${opt:stage, 'prod'}
   timeout: 30
-  region: eu-west-2
+  region: eu-west-1
   vpc:
     securityGroupIds:
       - ${ssm:/API/SecurityGroup}
