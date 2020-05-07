@@ -6,6 +6,11 @@ provider:
   stage: ${opt:stage, 'prod'}
   timeout: 30
   region: eu-west-2
+  vpc:
+    securityGroupIds:
+      - ${ssm:/API/SecurityGroup}
+    subnetIds:
+      - ${ssm:/API/Subnet}
 
 functions:
   resize:
