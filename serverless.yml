@@ -17,8 +17,8 @@ functions:
     handler: src/handler.resize
     environment:
       stage: ${self:provider.stage}
-      BUCKET_NAME: ${env:BUCKET_NAME}
-      BUCKET_REGION: ${env:BUCKET_REGION}
+      BUCKET_NAME: ${ssm:/API/ProfilePictures/BucketName}
+      BUCKET_REGION: ${ssm:/API/ProfilePictures/BucketRegion}
       AWS_KEY_ID: ${ssm:/resize/AwsKeyId}
       AWS_KEY_SECRET: ${ssm:/resize/AwsKeySecret~true}
 
@@ -30,7 +30,7 @@ functions:
 
     events:
       - s3:
-          bucket: ${env:BUCKET_NAME}
+          bucket: ${ssm:/API/ProfilePictures/BucketName}
           event: s3:ObjectCreated:*
           existing: true
       - http:
