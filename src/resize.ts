@@ -2,7 +2,7 @@ import { download, upload, getUrl } from './s3'
 import sharp from 'sharp'
 import db from './db'
 
-export default async function(...imgs) {
+export default async function (...imgs) {
   console.log(`process ${imgs.join(', ')}`)
   await Promise.all(imgs.map(img => process(img, imgs.length)))
 }

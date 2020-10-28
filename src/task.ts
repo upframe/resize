@@ -5,8 +5,10 @@ import sharp, { OutputInfo, Sharp } from 'sharp'
 
 export type Task = {
   input: string
-  crop?: Crop
   outputs: Output[]
+  crop?: Crop
+  resize?: Resize[]
+  formats: Format[]
 }
 
 type Output = {
@@ -22,6 +24,10 @@ type Crop = {
   absolute?: boolean
 }
 
+type Resize = { width?: number; height?: number }
+
+type Format = 'png' | 'jpeg' | 'webp'
+
 export default async function ({ input, outputs, ...ops }: Task) {
   if (!outputs?.length) throw 'no outputs specified'
 
@@ -32,11 +38,16 @@ export default async function ({ input, outputs, ...ops }: Task) {
 
   let out: Sharp[] = []
 
+  if (ops.resize?.length) out = ops.resize.map(v => resize(img.clone(), v))
+
+  if (ops.formats?.length)
+    out = out.flatMap(img => ops.formats.map(f => format(img.clone(), f)))
+
   if (!out.length) out = [img]
   const res = await Promise.allSettled(
-    out.flatMap((v) =>
+    out.flatMap(v =>
       v.toBuffer((err, data, info) =>
-        outputs.map((output) => writeOutput(output, data, info))
+        outputs.map(output => writeOutput(output, data, info))
       )
     )
   )
@@ -54,6 +65,29 @@ async function crop(img: Sharp, params: Crop) {
     width,
     height,
   })
+}
+
+function resize(img: Sharp, params: Resize) {
+  if ('width' in params === 'height' in params)
+    throw 'must specify either width or height for resizing'
+
+  return img.resize(params.width, params.height, {
+    kernel: sharp.kernel.lanczos3,
+    withoutEnlargement: true,
+  })
+}
+
+function format(img: Sharp, format: Format) {
+  switch (format) {
+    case 'png':
+      return img.png()
+    case 'jpeg':
+      return img.jpeg({ progressive: true })
+    case 'webp':
+      return img.webp()
+    default:
+      throw `unknown format type ${format}`
+  }
 }
 
 async function writeOutput(
