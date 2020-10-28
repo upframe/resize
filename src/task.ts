@@ -9,6 +9,7 @@ export type Task = {
   crop?: Crop
   resize?: Resize[]
   formats: Format[]
+  animation?: boolean
 }
 
 type Output = {
@@ -28,22 +29,20 @@ type Resize = { width?: number; height?: number }
 
 type Format = 'png' | 'jpeg' | 'webp'
 
-export default async function ({ input, outputs, ...ops }: Task) {
+export default async function ({ input, outputs, animation, ...ops }: Task) {
   if (!outputs?.length) throw 'no outputs specified'
 
   const raw = await download(input, true)
-  let img = sharp(raw)
+  // @ts-ignore
+  let out = [sharp(raw, { animated: animation })]
 
-  if (ops.crop) await crop(img, ops.crop)
+  if (ops.crop) await crop(out[0], ops.crop)
 
-  let out: Sharp[] = []
-
-  if (ops.resize?.length) out = ops.resize.map(v => resize(img.clone(), v))
+  if (ops.resize?.length) out = ops.resize.map(v => resize(out[0].clone(), v))
 
   if (ops.formats?.length)
     out = out.flatMap(img => ops.formats.map(f => format(img.clone(), f)))
 
-  if (!out.length) out = [img]
   const res = await Promise.allSettled(
     out.flatMap(v =>
       v.toBuffer((err, data, info) =>

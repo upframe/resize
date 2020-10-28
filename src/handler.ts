@@ -16,12 +16,12 @@ export const resize = async ({ Records, path, body }, context) => {
       )
     added = Records.filter(({ eventName }) => eventName === 'ObjectCreated:Put')
       .map(({ s3 }) => s3.object.key)
-      .filter((key) => /^\/?[^/]+\/?$/.test(key))
+      .filter(key => /^\/?[^/]+\/?$/.test(key))
   }
   if (added.length) await processImg(...added)
 }
 
-export const transform = wrap(async (event) => {
+export const transform = wrap(async event => {
   if (!('Records' in event)) {
     const headers = Object.fromEntries(
       Object.entries(event.headers).map(([k, v]) => [k.toLowerCase(), v])
