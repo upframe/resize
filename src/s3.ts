@@ -8,19 +8,23 @@ const s3 = new S3({
 
 const bucketUrl = `https://${process.env.BUCKET_NAME}.s3.${process.env.BUCKET_REGION}.amazonaws.com/`
 
-export const download = (path: string): Promise<Buffer> =>
+export const download = (path: string, absolute = false): Promise<Buffer> =>
   axios({
     method: 'get',
-    url: bucketUrl + path,
+    url: absolute ? path : bucketUrl + path,
     responseType: 'arraybuffer',
     timeout: 10000,
   }).then(({ data }) => data)
 
-export const upload = async (name: string, data: Buffer) =>
+export const upload = async (
+  name: string,
+  data: Buffer,
+  bucket = process.env.BUCKET_NAME
+) =>
   await s3
     .upload({
-      Bucket: process.env.BUCKET_NAME,
-      Key: `res-v2/${name}`,
+      Bucket: bucket,
+      Key: bucket === process.env.BUCKET_NAME ? `res-v2/${name}` : name,
       Body: data,
       ACL: 'public-read',
     })

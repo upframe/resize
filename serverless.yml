@@ -11,23 +11,22 @@ provider:
       - ${ssm:/API/SecurityGroup}
     subnetIds:
       - ${ssm:/API/Subnet}
+  environment:
+    stage: ${self:provider.stage}
+    BUCKET_NAME: ${ssm:/API/ProfilePictures/BucketName}
+    BUCKET_REGION: ${ssm:/API/ProfilePictures/BucketRegion}
+    AWS_KEY_ID: ${ssm:/resize/AwsKeyId}
+    AWS_KEY_SECRET: ${ssm:/resize/AwsKeySecret~true}
+    DB_HOST: ${ssm:/DB/Host}
+    DB_PORT: ${ssm:/DB/Port}
+    DB_NAME: ${ssm:/DB/Name}
+    DB_USER: ${ssm:/resize/DB/User}
+    DB_PASSWORD: ${ssm:/resize/DB/Password~true}
+    IMG_SECRET: ${ssm:/resize/secret~true}
 
 functions:
   resize:
     handler: src/handler.resize
-    environment:
-      stage: ${self:provider.stage}
-      BUCKET_NAME: ${ssm:/API/ProfilePictures/BucketName}
-      BUCKET_REGION: ${ssm:/API/ProfilePictures/BucketRegion}
-      AWS_KEY_ID: ${ssm:/resize/AwsKeyId}
-      AWS_KEY_SECRET: ${ssm:/resize/AwsKeySecret~true}
-
-      DB_HOST: ${ssm:/DB/Host}
-      DB_PORT: ${ssm:/DB/Port}
-      DB_NAME: ${ssm:/DB/Name}
-      DB_USER: ${ssm:/resize/DB/User}
-      DB_PASSWORD: ${ssm:/resize/DB/Password~true}
-
     events:
       - s3:
           bucket: ${ssm:/API/ProfilePictures/BucketName}
@@ -36,6 +35,12 @@ functions:
       - http:
           method: POST
           path: /resize
+  transform:
+    handler: src/handler.transform
+    events:
+      - http:
+          method: POST
+          path: /process
 
 plugins:
   - serverless-webpack
