@@ -33,7 +33,7 @@ export const transform = wrap(async event => {
   const tasks: Task[] =
     'body' in event
       ? JSON.parse(event.body)
-      : event.Records.map(({ Sns }) => Sns.Message)
+      : event.Records.map(({ Sns }) => JSON.parse(Sns.Message))
 
   if (!Array.isArray(tasks)) throw Error('body must be array of tasks')
 
