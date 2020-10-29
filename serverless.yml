@@ -41,6 +41,9 @@ functions:
       - http:
           method: POST
           path: /process
+      - sns:
+          arn: ${ssm:/resize/SNS/arn}
+          maximumRetryAttempts: 2
 
 plugins:
   - serverless-webpack
