@@ -2,6 +2,7 @@ import { download, upload } from './s3'
 import fs from 'fs'
 import path from 'path'
 import sharp, { OutputInfo, Sharp } from 'sharp'
+import db from './db'
 
 export type Task = {
   input: string
@@ -43,15 +44,39 @@ export default async function ({ input, outputs, animation, ...ops }: Task) {
   if (ops.formats?.length)
     out = out.flatMap(img => ops.formats.map(f => format(img.clone(), f)))
 
+  const keys: string[] = []
+
   const res = await Promise.allSettled(
-    out.flatMap(v =>
-      v.toBuffer((err, data, info) =>
-        outputs.map(output => writeOutput(output, data, info))
+    out.map(v =>
+      new Promise(res =>
+        v.toBuffer((err, data, info) => res([data, info]))
+      ).then(([data, info]) =>
+        Promise.all(
+          outputs.map(output =>
+            writeOutput(output, data, info).then(key => keys.push(key))
+          )
+        )
       )
     )
   )
 
   for (const v of res) if (v.status === 'rejected') throw v.reason
+
+  if (
+    outputs.length === 1 &&
+    outputs[0].bucket === 'upframe-user-media' &&
+    keys.length &&
+    keys.every(key => /^spaces\//.test(key))
+  ) {
+    const imgs = keys.map(v => v.split('/').pop())
+    const [, id] = keys[0].split('/')
+    const [type] = imgs[0].split('-')
+    if (!['cover', 'space'].includes(type)) return
+    await db('spaces')
+      .update({ [`${type}_imgs`]: imgs })
+      .where({ id })
+    console.log(`written ${imgs.join(', ')} to spaces.${type}_imgs for ${id}`)
+  }
 }
 
 async function crop(img: Sharp, params: Crop) {
@@ -103,6 +128,7 @@ async function writeOutput(
     if (!process.env.IS_OFFLINE) throw `must specify bucket for ${key}`
     writeFile(`output/${key}`, data)
   }
+  return key
 }
 
 function writeFile(key: string, data: Buffer) {

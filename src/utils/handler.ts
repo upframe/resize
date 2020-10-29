@@ -1,4 +1,5 @@
 import type * as AWS from 'aws-lambda'
+import db from '../db'
 
 type Handler = AWS.Handler<AWS.APIGatewayEvent | AWS.SNSEvent>
 
@@ -20,6 +21,8 @@ export default function (handler: Handler): Handler {
         statusCode: 500,
         [typeof e === 'number' ? 'statusCode' : 'body']: e,
       }
+    } finally {
+      await db.destroy()
     }
   }
 }
