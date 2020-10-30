@@ -72,20 +72,37 @@ export default async function ({ input, outputs, animation, ...ops }: Task) {
     const [, id] = keys[0].split('/')
     const [type] = imgs[0].split('-')
     if (!['cover', 'space'].includes(type)) return
-    await db('spaces')
-      .update({ [`${type}_imgs`]: imgs })
-      .where({ id })
-    console.log(`written ${imgs.join(', ')} to spaces.${type}_imgs for ${id}`)
+
+    try {
+      await db('spaces')
+        .update({ [`${type}_imgs`]: imgs })
+        .where({ id })
+      console.log(`written ${imgs.join(', ')} to spaces.${type}_imgs for ${id}`)
+    } catch (e) {
+      console.warn(`couldn't write images to db '${e?.toString?.()}'`)
+    }
   }
 }
 
 async function crop(img: Sharp, params: Crop) {
   const meta = await img.metadata()
-  const width = params.absolute ? params.width : meta.width * params.width
-  const height = width * params.ratio
+  const left = Math.max(
+    Math.round((params.left ?? 0) * (params.absolute ? 1 : meta.width)),
+    0
+  )
+  const top = Math.max(
+    Math.round((params.top ?? 0) * (params.absolute ? 1 : meta.height)),
+    0
+  )
+  let width = Math.round(
+    params.absolute ? params.width : meta.width * params.width
+  )
+  if (width + left > meta.width) width = meta.width - left
+  let height = Math.ceil(width * params.ratio)
+  if (height + top > meta.height) height = meta.height - top
   img = img.extract({
-    left: Math.round((params.left ?? 0) * (params.absolute ? 1 : meta.width)),
-    top: Math.round((params.top ?? 0) * (params.absolute ? 1 : meta.height)),
+    left,
+    top,
     width,
     height,
   })
