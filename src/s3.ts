@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { S3 } from 'aws-sdk'
 
-const s3 = new S3({
+export const s3 = new S3({
   accessKeyId: process.env.AWS_KEY_ID,
   secretAccessKey: process.env.AWS_KEY_SECRET,
 })

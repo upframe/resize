@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import sharp, { OutputInfo, Sharp } from 'sharp'
 import db from './db'
+import { s3 } from './s3'
 
 export type Task = {
   input: string
@@ -78,6 +79,28 @@ export default async function ({ input, outputs, animation, ...ops }: Task) {
         .update({ [`${type}_imgs`]: imgs })
         .where({ id })
       console.log(`written ${imgs.join(', ')} to spaces.${type}_imgs for ${id}`)
+
+      const { Contents } = await s3
+        .listObjectsV2({
+          Bucket: 'upframe-user-media',
+          Prefix: `spaces/${id}/${type}-`,
+        })
+        .promise()
+
+      const newKeys = imgs.map(v => `spaces/${id}/${v}`)
+
+      const old = Contents.map(({ Key }) => Key).filter(
+        key => !newKeys.includes(key)
+      )
+
+      await s3
+        .deleteObjects({
+          Bucket: 'upframe-user-media',
+          Delete: { Objects: old.map(Key => ({ Key })) },
+        })
+        .promise()
+
+      console.log(`deleted old images ${old.join(', ')}`)
     } catch (e) {
       console.warn(`couldn't write images to db '${e?.toString?.()}'`)
     }
