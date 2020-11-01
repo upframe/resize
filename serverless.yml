@@ -17,6 +17,7 @@ provider:
     BUCKET_REGION: ${ssm:/API/ProfilePictures/BucketRegion}
     AWS_KEY_ID: ${ssm:/resize/AwsKeyId}
     AWS_KEY_SECRET: ${ssm:/resize/AwsKeySecret~true}
+    DB_PROXY_HOST: ${ssm:/DB/Proxy/Host}
     DB_HOST: ${ssm:/DB/Host}
     DB_PORT: ${ssm:/DB/Port}
     DB_NAME: ${ssm:/DB/Name}
@@ -32,9 +33,6 @@ functions:
           bucket: ${ssm:/API/ProfilePictures/BucketName}
           event: s3:ObjectCreated:*
           existing: true
-      - http:
-          method: POST
-          path: /resize
   transform:
     handler: src/handler.transform
     events:

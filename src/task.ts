@@ -2,8 +2,8 @@ import { download, upload } from './s3'
 import fs from 'fs'
 import path from 'path'
 import sharp, { OutputInfo, Sharp } from 'sharp'
-import db from './db'
 import { s3 } from './s3'
+import type Knex from 'knex'
 
 export type Task = {
   input: string
@@ -31,7 +31,10 @@ type Resize = { width?: number; height?: number }
 
 type Format = 'png' | 'jpeg' | 'webp'
 
-export default async function ({ input, outputs, animation, ...ops }: Task) {
+export default async function (
+  { input, outputs, animation, ...ops }: Task,
+  db: Knex
+) {
   if (!outputs?.length) throw 'no outputs specified'
 
   const raw = await download(input, true)

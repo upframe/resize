@@ -1,13 +1,13 @@
 import { download, upload, getUrl } from './s3'
 import sharp from 'sharp'
-import db from './db'
+import type Knex from 'knex'
 
-export default async function (...imgs) {
+export default async function (db: Knex, ...imgs) {
   console.log(`process ${imgs.join(', ')}`)
-  await Promise.all(imgs.map(img => process(img, imgs.length)))
+  await Promise.all(imgs.map(img => process(db, img, imgs.length)))
 }
 
-async function process(img: string, total: number) {
+async function process(db: Knex, img: string, total: number) {
   let data: Buffer
   try {
     data = await download(img)
@@ -37,7 +37,7 @@ async function process(img: string, total: number) {
                     format,
                     name,
                   })),
-                () => console.log(`couldn't resize ${name}`)
+                () => console.error(`couldn't resize ${name}`)
               )
               .catch(({ message }) =>
                 console.warn(`couldn't upload ${name} (${message})`)
@@ -67,7 +67,7 @@ async function process(img: string, total: number) {
     console.log(`stored imgs in DB`)
   } catch (e) {
     console.warn(`couldn't resize ${img}`)
-    console.log(e)
+    console.error(e)
   }
 }
 
